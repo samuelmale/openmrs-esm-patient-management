@@ -1,3 +1,6 @@
+import { queueSynchronizationItem } from '@openmrs/esm-framework';
+import { v4 } from 'uuid';
+import { patientRegistration } from '../constants';
 import {
   FormValues,
   PatientIdentifierType,
@@ -14,8 +17,6 @@ import {
   savePatientPhoto,
   saveRelationship,
 } from './patient-registration.resource';
-import { PatientRegistrationDb } from '../offline';
-import { v4 } from 'uuid';
 
 export type SavePatientForm = (
   patientUuid: string | undefined,
@@ -43,9 +44,9 @@ export default class FormManager {
     personAttributeSections: any,
   ): Promise<null> {
     patientUuid = patientUuid ?? v4();
-    const db = new PatientRegistrationDb();
-    await db.patientRegistrations.where({ patientUuid }).delete();
-    await db.patientRegistrations.add({
+
+    // need to replace!
+    queueSynchronizationItem(patientRegistration, {
       patientUuid,
       formValues: values,
       patientUuidMap,
@@ -56,6 +57,10 @@ export default class FormManager {
       currentLocation,
       personAttributeSections,
     });
+
+    const db = new PatientRegistrationDb();
+    await db.patientRegistrations.where({ patientUuid }).delete();
+    await db.patientRegistrations.add();
 
     return null;
   }
