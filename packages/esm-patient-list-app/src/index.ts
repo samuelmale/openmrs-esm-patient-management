@@ -1,5 +1,4 @@
-import { getAsyncLifecycle } from '@openmrs/esm-framework';
-import { registerBreadcrumbs } from '@openmrs/esm-framework';
+import { getAsyncLifecycle, registerBreadcrumbs } from '@openmrs/esm-framework';
 
 const backendDependencies = {
   'webservices.rest': '^2.2.0',
@@ -46,6 +45,12 @@ function setupOpenMRS() {
         id: 'patient-list-link',
         slot: 'app-menu-slot',
         load: getAsyncLifecycle(() => import('./patient-list-link'), options),
+        online: true,
+        offline: true,
+      },
+      {
+        id: 'patient-table',
+        load: getAsyncLifecycle(() => import('./PatientTable/patient-table.component'), options),
         online: true,
         offline: true,
       },
