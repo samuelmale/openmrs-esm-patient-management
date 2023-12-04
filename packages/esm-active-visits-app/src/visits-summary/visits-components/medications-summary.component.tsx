@@ -1,4 +1,5 @@
 import React from 'react';
+import classNames from 'classnames';
 import capitalize from 'lodash-es/capitalize';
 import { useTranslation } from 'react-i18next';
 import { formatTime, parseDate } from '@openmrs/esm-framework';
@@ -20,7 +21,7 @@ const MedicationSummary: React.FC<MedicationSummaryProps> = ({ medications }) =>
             medication.order?.dose &&
             medication.order?.orderType?.display === 'Drug Order' && (
               <React.Fragment key={ind}>
-                <p className={`${styles.bodyLong01} ${styles.medicationBlock}`}>
+                <p className={classNames(styles.bodyLong01, styles.medicationBlock)}>
                   <strong>{capitalize(medication.order.drug?.name)}</strong> &mdash;{' '}
                   {medication.order.doseUnits?.display} &mdash; {medication.order.route?.display}
                   <br />
@@ -29,7 +30,7 @@ const MedicationSummary: React.FC<MedicationSummaryProps> = ({ medications }) =>
                   &mdash; {medication.order.frequency?.display} &mdash;{' '}
                   {!medication.order.duration
                     ? t('orderIndefiniteDuration', 'Indefinite duration')
-                    : t('orderDurationAndUnit', 'for {duration} {durationUnit}', {
+                    : t('orderDurationAndUnit', 'for {{duration}} {{durationUnit}}', {
                         duration: medication.order.duration,
                         durationUnit: medication.order.durationUnits?.display,
                       })}
@@ -46,7 +47,9 @@ const MedicationSummary: React.FC<MedicationSummaryProps> = ({ medications }) =>
             ),
         )
       ) : (
-        <p className={`${styles.bodyLong01} ${styles.text02}`}>{t('noMedicationsFound', 'No medications found')}</p>
+        <p className={classNames(styles.bodyLong01, styles.text02)}>
+          {t('noMedicationsFound', 'No medications found')}
+        </p>
       )}
     </React.Fragment>
   );

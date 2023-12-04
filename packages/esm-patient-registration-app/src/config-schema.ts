@@ -72,6 +72,9 @@ export interface RegistrationConfig {
     encounterProviderRoleUuid: string;
     registrationFormUuid: string | null;
   };
+  CR: {
+    isClientRegistryEnabled: boolean;
+  };
 }
 
 export const builtInSections: Array<SectionDefinition> = [
@@ -359,6 +362,9 @@ export const esmPatientRegistrationSchema = {
       _description:
         'The form UUID to associate with the registration encounter. By default no form will be associated.',
     },
+  },
+  CR: {
+    isClientRegistryEnabled: false,
   },
   _validators: [
     validator(

@@ -8,16 +8,16 @@ This repository contains frontend modules for the OpenMRS SPA. These modules rel
 
 - [Active visits app](packages/esm-active-visits-app/)
 - [Appointments app](packages/esm-appointments-app/)
-- [Outpatient app](packages/esm-outpatient-app/README.md)
+- [Service queues](packages/esm-service-queues-app/README.md)
 - [Patient search](packages/esm-patient-search-app)
 - [Patient registration](packages/esm-patient-registration-app)
-- [Patient list](packages/esm-patient-list-app)
+- [Patient list management](packages/esm-patient-list-management-app)
 
 ## Setup
 
 Check out the developer documentation [here](http://o3-dev.docs.openmrs.org).
 
-This monorepo uses [yarn](https://yarnpkg.com) and [lerna](https://github.com/lerna/lerna).
+This monorepo uses [yarn](https://yarnpkg.com).
 
 To install the dependancies, run:
 ```bash
@@ -27,11 +27,14 @@ yarn install
 To set up environment variables for the project, follow these steps:
 
 1. Create a copy of the .env.example file by running the following command:
-  ```bash
-  cp example.env .env
-  ```
+
+    ```bash
+    cp example.env .env
+    ```
+
 2. Open the newly created .env file in the root of the project.
-3. Add the environment variables you need. 
+
+3. Add the environment variables you need.
 
 Note: These variables are currently only used for end-to-end tests.
 
@@ -136,7 +139,11 @@ Then, in a separate terminal, run:
 yarn test-e2e --headed
 ```
 
-Please read [our e2e docs](e2e/README.md) for more information about E2E testing.
+Please read [our e2e test guide](https://o3-docs.openmrs.org/docs/frontend-modules/testing#end-to-end-testing-with-playwright) for more information about E2E testing.
+
+### Updating Playwright Version
+
+To upgrade your Playwright version, ensure that you update both the package.json file and the [e2e/support/bamboo/playwright.Dockerfile](e2e/support/bamboo/playwright.Dockerfile).
 
 ## Design Patterns
 
@@ -171,5 +178,5 @@ The tag should be prefixed with `v` (e.g., `v3.2.1`), while the release title
 should just be the version number (e.g., `3.2.1`). The creation of the GitHub release
 will cause GitHub Actions to publish the packages, completing the release process.
 
-> Don't run `npm publish`, `yarn publish`, or `lerna publish`. Use the above process.
+> Don't run `npm publish` or `yarn publish`. Use the above process.
 

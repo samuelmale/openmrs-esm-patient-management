@@ -1,4 +1,5 @@
-import React, { MouseEvent } from 'react';
+import React, { MouseEvent, useMemo } from 'react';
+import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonSkeleton, SkeletonIcon, SkeletonText } from '@carbon/react';
 import { ChevronDown, ChevronUp, OverflowMenuVertical } from '@carbon/react/icons';
@@ -11,6 +12,7 @@ import {
   interpolateString,
   useConfig,
   ConfigurableLink,
+  useConnectedExtensions,
 } from '@openmrs/esm-framework';
 import { SearchedPatient } from '../../../types';
 import ContactDetails from '../contact-details/contact-details.component';
@@ -39,6 +41,7 @@ const PatientBanner: React.FC<PatientBannerProps> = ({
   const { currentVisit } = useVisit(patientUuid);
   const [showDropdown, setShowDropdown] = React.useState(false);
   const config = useConfig();
+  const patientSearchActions = useConnectedExtensions('patient-search-actions-slot');
 
   const patientActionsSlotState = React.useMemo(
     () => ({ patientUuid, selectPatientAction, onTransition, launchPatientChart: true }),
@@ -64,6 +67,11 @@ const PatientBanner: React.FC<PatientBannerProps> = ({
     event.stopPropagation();
     setShowDropdown((value) => !value);
   }, []);
+
+  const showActionsMenu = useMemo(
+    () => !hideActionsOverflow && patientSearchActions.length > 0,
+    [patientSearchActions.length, hideActionsOverflow],
+  );
 
   const getGender = (gender) => {
     switch (gender) {
@@ -91,18 +99,21 @@ const PatientBanner: React.FC<PatientBannerProps> = ({
   return (
     <>
       <div
-        className={`${styles.container} ${
-          isDeceased ? styles.deceasedPatientContainer : styles.activePatientContainer
-        }`}
+        className={classNames(styles.container, {
+          [styles.deceasedPatientContainer]: isDeceased,
+          [styles.activePatientContainer]: !isDeceased,
+        })}
         role="banner">
         <ConfigurableLink
+          className={classNames(styles.patientBanner, {
+            [styles.patientAvatarButton]: selectPatientAction,
+          })}
+          onClick={(evt) => selectPatientAction(evt, patientUuid)}
           to={`${interpolateString(config.search.patientResultUrl, {
             patientUuid: patientUuid,
-          })}`}
-          onClick={(evt) => selectPatientAction(evt, patientUuid)}
-          className={`${styles.patientBanner} ${selectPatientAction && styles.patientAvatarButton}`}>
+          })}`}>
           {patientAvatar}
-          <div className={`${styles.patientNameRow} ${styles.patientInfo}`}>
+          <div className={classNames(styles.patientNameRow, styles.patientInfo)}>
             <div className={styles.flexRow}>
               <span className={styles.patientName}>{patientName}</span>
               <ExtensionSlot
@@ -121,7 +132,7 @@ const PatientBanner: React.FC<PatientBannerProps> = ({
           </div>
         </ConfigurableLink>
         <div className={styles.buttonCol}>
-          {!hideActionsOverflow && (
+          {showActionsMenu && (
             <div className={styles.overflowMenuContainer} ref={overflowMenuRef}>
               <CustomOverflowMenuComponent
                 isDeceased={isDeceased}
@@ -131,7 +142,7 @@ const PatientBanner: React.FC<PatientBannerProps> = ({
                     <OverflowMenuVertical className={styles.menu} size={16} />
                   </>
                 }
-                dropDownMenu={showDropdown}>
+                dropdownMenu={showDropdown}>
                 <ExtensionSlot
                   onClick={closeDropdownMenu}
                   name="patient-search-actions-slot"
@@ -184,7 +195,7 @@ export const PatientBannerSkeleton = () => {
     <div className={styles.container} role="banner">
       <div className={styles.patientBanner}>
         <SkeletonIcon className={styles.patientAvatar} />
-        <div className={`${styles.patientNameRow} ${styles.patientInfo}`}>
+        <div className={classNames(styles.patientNameRow, styles.patientInfo)}>
           <div className={styles.flexRow}>
             <SkeletonText />
           </div>

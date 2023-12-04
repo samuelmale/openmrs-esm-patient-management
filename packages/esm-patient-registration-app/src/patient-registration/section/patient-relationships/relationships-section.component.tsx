@@ -40,27 +40,33 @@ const RelationshipView: React.FC<RelationshipViewProps> = ({
 }) => {
   const { t } = useTranslation();
   const { setFieldValue } = React.useContext(PatientRegistrationContext);
-
+  const [isInvalid, setIsInvalid] = useState<boolean>(false);
   const newRelationship = !relationship.uuid;
 
-  const handleRelationshipTypeChange = useCallback((event) => {
-    const { target } = event;
-    const field = target.name;
-    const value = target.options[target.selectedIndex].value;
-    setFieldValue(field, value);
-    if (!relationship?.action) {
-      setFieldValue(`relationships[${index}].action`, 'UPDATE');
-    }
-  }, []);
+  const handleRelationshipTypeChange = useCallback(
+    (event) => {
+      const { target } = event;
+      const field = target.name;
+      const value = target.options[target.selectedIndex].value;
+      setFieldValue(field, value);
+      if (!relationship?.action) {
+        setFieldValue(`relationships[${index}].action`, 'UPDATE');
+      }
+    },
+    [index, relationship?.action, setFieldValue],
+  );
 
-  const handleSuggestionSelected = useCallback((field: string, selectedSuggestion: string) => {
-    setFieldValue(field, selectedSuggestion);
-  }, []);
+  const handleSuggestionSelected = useCallback(
+    (field: string, selectedSuggestion: string) => {
+      setIsInvalid(!selectedSuggestion);
+      setFieldValue(field, selectedSuggestion);
+    },
+    [setFieldValue],
+  );
 
   const searchPerson = async (query: string) => {
     const abortController = new AbortController();
-    const searchResults = await fetchPerson(query);
-    return searchResults.data.results;
+    return await fetchPerson(query, abortController);
   };
 
   const deleteRelationship = useCallback(() => {
@@ -69,7 +75,7 @@ const RelationshipView: React.FC<RelationshipViewProps> = ({
     } else {
       setFieldValue(`relationships[${index}].action`, 'DELETE');
     }
-  }, [relationship, index]);
+  }, [relationship, index, remove, setFieldValue]);
 
   const restoreRelationship = useCallback(() => {
     setFieldValue(`relationships[${index}]`, {
@@ -77,15 +83,13 @@ const RelationshipView: React.FC<RelationshipViewProps> = ({
       action: undefined,
       relationshipType: relationship.initialrelationshipTypeValue,
     });
-  }, [index]);
+  }, [index, setFieldValue, relationship]);
 
   return relationship.action !== 'DELETE' ? (
     <div className={styles.relationship}>
       <div className={styles.searchBox}>
         <div className={styles.relationshipHeader}>
-          <h4 className={styles.productiveHeading}>
-            {relationship?.relation ?? t('relationshipPlaceholder', 'Relationship')}
-          </h4>
+          <h4 className={styles.productiveHeading}>{t('relationshipPlaceholder', 'Relationship')}</h4>
           <Button
             kind="ghost"
             iconDescription={t('deleteRelationshipTooltipText', 'Delete')}
@@ -97,15 +101,16 @@ const RelationshipView: React.FC<RelationshipViewProps> = ({
         <div>
           {newRelationship ? (
             <Autosuggest
-              name={`relationships[${index}].relatedPersonUuid`}
+              id={`relationships[${index}].relatedPersonUuid`}
               labelText={t('relativeFullNameLabelText', 'Full name')}
               placeholder={t('relativeNamePlaceholder', 'Firstname Familyname')}
               defaultValue={relationship.relatedPersonName}
               onSuggestionSelected={handleSuggestionSelected}
+              invalid={isInvalid}
+              invalidText={t('relationshipPersonMustExist', 'Related person must be an existing person')}
               getSearchResults={searchPerson}
               getDisplayValue={(item) => item.display}
               getFieldValue={(item) => item.uuid}
-              required
             />
           ) : (
             <>
@@ -115,7 +120,7 @@ const RelationshipView: React.FC<RelationshipViewProps> = ({
           )}
         </div>
       </div>
-      <div className={`${styles.selectRelationshipType}`} style={{ marginBottom: '1rem' }}>
+      <div className={styles.selectRelationshipType} style={{ marginBottom: '1rem' }}>
         <Layer>
           <Select
             id="select"
@@ -163,12 +168,12 @@ export const RelationshipsSection = () => {
       const tmp: RelationshipType[] = [];
       relationshipTypes.results.forEach((type) => {
         const aIsToB = {
-          display: type.aIsToB,
+          display: type.displayAIsToB ? type.displayAIsToB : type.aIsToB,
           uuid: type.uuid,
           direction: 'aIsToB',
         };
         const bIsToA = {
-          display: type.bIsToA,
+          display: type.displayBIsToA ? type.displayBIsToA : type.bIsToA,
           uuid: type.uuid,
           direction: 'bIsToA',
         };

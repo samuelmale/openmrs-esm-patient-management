@@ -7,8 +7,12 @@ import '@testing-library/jest-dom';
 import { DobField } from './dob.component';
 import { PatientRegistrationContext } from '../../patient-registration-context';
 import { initialFormValues } from '../../patient-registration.component';
+<<<<<<< HEAD
 import { FormValues } from '../../patient-registration-types';
 import { OpenmrsDatePicker } from '@openmrs/esm-styleguide/src/public';
+=======
+import { type FormValues } from '../../patient-registration.types';
+>>>>>>> ac3fb98bd881a04f759fe240575ac25cef67c4d3
 
 jest.mock('@openmrs/esm-framework', () => {
   const originalModule = jest.requireActual('@openmrs/esm-framework');

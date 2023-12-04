@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { ContentSwitcher, DataTableSkeleton, Switch } from '@carbon/react';
 import { Encounter, useVisit } from './visit.resource';
@@ -41,9 +42,11 @@ const VisitDetailComponent: React.FC<VisitDetailComponentProps> = ({ visitUuid, 
           <h4 className={styles.productiveHeading02}>
             {visit?.visitType?.display}
             <br />
-            <p className={`${styles.bodyLong01} ${styles.text02}`}>{formatDatetime(parseDate(visit?.startDatetime))}</p>
+            <p className={classNames(styles.bodyLong01, styles.text02)}>
+              {formatDatetime(parseDate(visit?.startDatetime))}
+            </p>
           </h4>
-          <div style={{ margin: '0 1rem' }}>
+          <div className={styles.actions}>
             <ContentSwitcher
               className={styles.contentSwitcher}
               selectedIndex={contentSwitcherIndex}
@@ -60,7 +63,14 @@ const VisitDetailComponent: React.FC<VisitDetailComponentProps> = ({ visitUuid, 
       </div>
     );
   } else {
-    return null;
+    return (
+      <div className={styles.visitEmptyState}>
+        <h4 className={styles.productiveHeading02}>{t('noVisitsFound', 'No visits found')}</h4>
+        <p className={classNames(styles.bodyLong01, styles.text02)}>
+          {t('thereIsNoInformationToDisplayHere', 'There is no information to display here')}
+        </p>
+      </div>
+    );
   }
 };
 

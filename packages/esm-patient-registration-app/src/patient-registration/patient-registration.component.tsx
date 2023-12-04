@@ -1,28 +1,26 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
+import classNames from 'classnames';
 import { Button, Link } from '@carbon/react';
 import { XAxis } from '@carbon/react/icons';
-import { Router, useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Formik, Form, FormikHelpers } from 'formik';
 import { createErrorHandler, showToast, useConfig, interpolateUrl, usePatient } from '@openmrs/esm-framework';
 import { validationSchema as initialSchema } from './validation/patient-registration-validation';
-import { FormValues, CapturePhotoProps, PatientIdentifierValue } from './patient-registration.types';
+import { FormValues, CapturePhotoProps } from './patient-registration.types';
 import { PatientRegistrationContext } from './patient-registration-context';
-import { SavePatientForm, SavePatientTransactionManager } from './form-manager';
+import { FormManager, SavePatientForm, SavePatientTransactionManager } from './form-manager';
 import { usePatientPhoto } from './patient-registration.resource';
 import { DummyDataInput } from './input/dummy-data/dummy-data-input.component';
-import {
-  cancelRegistration,
-  filterUndefinedPatientIdenfier,
-  parseAddressTemplateXml,
-  scrollIntoView,
-} from './patient-registration-utils';
+import { cancelRegistration, filterUndefinedPatientIdenfier, scrollIntoView } from './patient-registration-utils';
 import { useInitialAddressFieldValues, useInitialFormValues, usePatientUuidMap } from './patient-registration-hooks';
 import { ResourcesContext } from '../offline.resources';
 import { builtInSections, RegistrationConfig, SectionDefinition } from '../config-schema';
 import { SectionWrapper } from './section/section-wrapper.component';
 import BeforeSavePrompt from './before-save-prompt';
 import styles from './patient-registration.scss';
+import { checkForPotentialMatches } from './cr/client-registry.resource';
+import { DraftPatientReview } from './ui-components/draft-patient-reveiw/draft-patient-review.component';
 
 let exportedInitialFormValuesForTesting = {} as FormValues;
 
@@ -51,6 +49,8 @@ export const PatientRegistration: React.FC<PatientRegistrationProps> = ({ savePa
   const savePatientTransactionManager = useRef(new SavePatientTransactionManager());
   const fieldDefinition = config?.fieldDefinitions?.filter((def) => def.type === 'address');
 
+  const [isQueringCR, setIsQueringCR] = useState(false);
+
   useEffect(() => {
     exportedInitialFormValuesForTesting = initialFormValues;
   }, [initialFormValues]);
@@ -67,54 +67,65 @@ export const PatientRegistration: React.FC<PatientRegistrationProps> = ({ savePa
 
   const onFormSubmit = async (values: FormValues, helpers: FormikHelpers<FormValues>) => {
     const abortController = new AbortController();
-    helpers.setSubmitting(true);
-
     const updatedFormValues = { ...values, identifiers: filterUndefinedPatientIdenfier(values.identifiers) };
-    try {
-      await savePatientForm(
-        !inEditMode,
-        updatedFormValues,
-        patientUuidMap,
-        initialAddressFieldValues,
-        capturePhotoProps,
-        location,
-        initialFormValues['identifiers'],
-        currentSession,
-        config,
-        savePatientTransactionManager.current,
-        abortController,
+
+    if (!inEditMode) {
+      const draftPatient = FormManager.mapPatientToFhirPatient(
+        FormManager.getPatientToCreate(true, updatedFormValues, patientUuidMap, []),
       );
-
-      showToast({
-        description: inEditMode
-          ? t('updationSuccessToastDescription', "The patient's information has been successfully updated")
-          : t(
-              'registrationSuccessToastDescription',
-              'The patient can now be found by searching for them using their name or ID number',
-            ),
-        title: inEditMode
-          ? t('updationSuccessToastTitle', 'Patient Details Updated')
-          : t('registrationSuccessToastTitle', 'New Patient Created'),
-        kind: 'success',
-      });
-
-      const afterUrl = new URLSearchParams(search).get('afterUrl');
-      const redirectUrl = interpolateUrl(afterUrl || config.links.submitButton, { patientUuid: values.patientUuid });
-
-      setTarget(redirectUrl);
-    } catch (error) {
-      if (error.responseBody?.error?.globalErrors) {
-        error.responseBody.error.globalErrors.forEach((error) => {
-          showToast({ description: error.message });
-        });
-      } else if (error.responseBody?.error?.message) {
-        showToast({ description: error.responseBody.error.message });
-      } else {
-        createErrorHandler()(error);
-      }
-
-      helpers.setSubmitting(false);
+      setIsQueringCR(true);
+      const matches = await checkForPotentialMatches(draftPatient, abortController);
+      setIsQueringCR(false);
+      <DraftPatientReview draftPatient={draftPatient} potentialMatches={matches} open={true} />;
     }
+
+    // helpers.setSubmitting(true);
+
+    // try {
+    //   await savePatientForm(
+    //     !inEditMode,
+    //     updatedFormValues,
+    //     patientUuidMap,
+    //     initialAddressFieldValues,
+    //     capturePhotoProps,
+    //     location,
+    //     initialFormValues['identifiers'],
+    //     currentSession,
+    //     config,
+    //     savePatientTransactionManager.current,
+    //     abortController,
+    //   );
+
+    //   showToast({
+    //     description: inEditMode
+    //       ? t('updationSuccessToastDescription', "The patient's information has been successfully updated")
+    //       : t(
+    //           'registrationSuccessToastDescription',
+    //           'The patient can now be found by searching for them using their name or ID number',
+    //         ),
+    //     title: inEditMode
+    //       ? t('updationSuccessToastTitle', 'Patient Details Updated')
+    //       : t('registrationSuccessToastTitle', 'New Patient Created'),
+    //     kind: 'success',
+    //   });
+
+    //   const afterUrl = new URLSearchParams(search).get('afterUrl');
+    //   const redirectUrl = interpolateUrl(afterUrl || config.links.submitButton, { patientUuid: values.patientUuid });
+
+    //   setTarget(redirectUrl);
+    // } catch (error) {
+    //   if (error.responseBody?.error?.globalErrors) {
+    //     error.responseBody.error.globalErrors.forEach((error) => {
+    //       showToast({ description: error.message });
+    //     });
+    //   } else if (error.responseBody?.error?.message) {
+    //     showToast({ description: error.responseBody.error.message });
+    //   } else {
+    //     createErrorHandler()(error);
+    //   }
+
+    //   helpers.setSubmitting(false);
+    // }
   };
 
   const getDescription = (errors) => {
@@ -158,7 +169,7 @@ export const PatientRegistration: React.FC<PatientRegistrationProps> = ({ savePa
                 {showDummyData && <DummyDataInput setValues={props.setValues} />}
                 <p className={styles.label01}>{t('jumpTo', 'Jump to')}</p>
                 {sections.map((section) => (
-                  <div className={`${styles.space05} ${styles.touchTarget}`} key={section.name}>
+                  <div className={classNames(styles.space05, styles.touchTarget)} key={section.name}>
                     <Link className={styles.linkName} onClick={() => scrollIntoView(section.id)}>
                       <XAxis size={16} /> {t(`${section.id}Section`, section.name)}
                     </Link>

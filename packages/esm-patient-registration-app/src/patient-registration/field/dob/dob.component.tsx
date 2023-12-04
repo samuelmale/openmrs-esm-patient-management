@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import React, { useContext } from 'react';
 import { ContentSwitcher, Layer, Switch, TextInput } from '@carbon/react';
+=======
+import React, { ChangeEvent, useCallback, useContext } from 'react';
+import { ContentSwitcher, DatePicker, DatePickerInput, Layer, Switch, TextInput } from '@carbon/react';
+>>>>>>> ac3fb98bd881a04f759fe240575ac25cef67c4d3
 import { useTranslation } from 'react-i18next';
 import { useField } from 'formik';
 import { generateFormatting } from '../../date-util';
@@ -35,42 +40,60 @@ export const DobField: React.FC = () => {
   const { format, placeHolder, dateFormat } = generateFormatting(['d', 'm', 'Y'], '/');
   const today = new Date();
 
-  const onToggle = (e) => {
-    setFieldValue('birthdateEstimated', e.name === 'unknown');
-    setFieldValue('birthdate', '');
-    setFieldValue('yearsEstimated', 0);
-    setFieldValue('monthsEstimated', '');
-  };
+  const onToggle = useCallback(
+    (e: { name?: string | number }) => {
+      setFieldValue('birthdateEstimated', e.name === 'unknown');
+      setFieldValue('birthdate', '');
+      setFieldValue('yearsEstimated', 0);
+      setFieldValue('monthsEstimated', '');
+    },
+    [setFieldValue],
+  );
 
+<<<<<<< HEAD
   const onDateChange = (birthdate) => {
     setFieldValue('birthdate', birthdate);
   };
+=======
+  const onDateChange = useCallback(
+    (birthdate: Date[]) => {
+      setFieldValue('birthdate', birthdate[0]);
+    },
+    [setFieldValue],
+  );
+>>>>>>> ac3fb98bd881a04f759fe240575ac25cef67c4d3
 
-  const onEstimatedYearsChange = (ev) => {
-    const years = +ev.target.value;
+  const onEstimatedYearsChange = useCallback(
+    (ev: ChangeEvent<HTMLInputElement>) => {
+      const years = +ev.target.value;
 
-    if (!isNaN(years) && years < 140 && years >= 0) {
-      setFieldValue('yearsEstimated', years);
-      setFieldValue('birthdate', calcBirthdate(years, monthsEstimateMeta.value, dateOfBirth));
-    }
-  };
+      if (!isNaN(years) && years < 140 && years >= 0) {
+        setFieldValue('yearsEstimated', years);
+        setFieldValue('birthdate', calcBirthdate(years, monthsEstimateMeta.value, dateOfBirth));
+      }
+    },
+    [setFieldValue, dateOfBirth, monthsEstimateMeta.value],
+  );
 
-  const onEstimatedMonthsChange = (e) => {
-    const months = +e.target.value;
+  const onEstimatedMonthsChange = useCallback(
+    (ev: ChangeEvent<HTMLInputElement>) => {
+      const months = +ev.target.value;
 
-    if (!isNaN(months)) {
-      setFieldValue('monthsEstimated', months);
-      setFieldValue('birthdate', calcBirthdate(yearsEstimateMeta.value, months, dateOfBirth));
-    }
-  };
+      if (!isNaN(months)) {
+        setFieldValue('monthsEstimated', months);
+        setFieldValue('birthdate', calcBirthdate(yearsEstimateMeta.value, months, dateOfBirth));
+      }
+    },
+    [setFieldValue, dateOfBirth, yearsEstimateMeta.value],
+  );
 
-  const updateBirthdate = () => {
+  const updateBirthdate = useCallback(() => {
     const months = +monthsEstimateMeta.value % 12;
     const years = +yearsEstimateMeta.value + Math.floor(monthsEstimateMeta.value / 12);
     setFieldValue('yearsEstimated', years);
     setFieldValue('monthsEstimated', months > 0 ? months : '');
     setFieldValue('birthdate', calcBirthdate(years, months, dateOfBirth));
-  };
+  }, [setFieldValue, monthsEstimateMeta, yearsEstimateMeta, dateOfBirth]);
 
   return (
     <div className={styles.halfWidthInDesktopView}>

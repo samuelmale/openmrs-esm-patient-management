@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { showToast, useConfig, usePatient } from '@openmrs/esm-framework';
 import { FormManager } from './form-manager';
 import { saveEncounter, savePatient } from './patient-registration.resource';
-import { Encounter } from './patient-registration-types';
+import type { Encounter } from './patient-registration.types';
 import { Resources, ResourcesContext } from '../offline.resources';
 import { PatientRegistration } from './patient-registration.component';
 import { RegistrationConfig } from '../config-schema';
@@ -19,6 +19,20 @@ const mockedSaveEncounter = saveEncounter as jest.Mock;
 const mockedSavePatient = savePatient as jest.Mock;
 const mockedShowToast = showToast as jest.Mock;
 
+<<<<<<< HEAD
+=======
+jest.setTimeout(10000);
+
+jest.mock('@openmrs/esm-framework', () => {
+  const originalModule = jest.requireActual('@openmrs/esm-framework');
+
+  return {
+    ...originalModule,
+    validator: jest.fn(),
+  };
+});
+
+>>>>>>> ac3fb98bd881a04f759fe240575ac25cef67c4d3
 // Mock field.resource using the manual mock (in __mocks__)
 jest.mock('./field/field.resource');
 
@@ -48,6 +62,7 @@ jest.mock('@openmrs/esm-framework', () => {
     ...originalModule,
     validator: jest.fn(),
     getLocale: jest.fn().mockReturnValue('en'),
+<<<<<<< HEAD
     OpenmrsDatePicker: (datePickerProps) => (
       <OpenmrsDatePicker
         id={datePickerProps.id}
@@ -59,6 +74,8 @@ jest.mock('@openmrs/esm-framework', () => {
         carbonOptions={datePickerProps.carbonOptions}
       />
     ),
+=======
+>>>>>>> ac3fb98bd881a04f759fe240575ac25cef67c4d3
   };
 });
 

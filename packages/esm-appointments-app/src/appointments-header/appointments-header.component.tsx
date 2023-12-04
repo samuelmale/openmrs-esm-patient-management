@@ -21,6 +21,7 @@ const AppointmentsHeader: React.FC<AppointmentHeaderProps> = ({ title, onChange 
   const { currentAppointmentDate } = useAppointmentDate();
   const location = session?.sessionLocation?.display;
   const { serviceTypes } = useAppointmentServices();
+
   return (
     <div className={styles.header} data-testid="appointments-header">
       <div className={styles['left-justified-items']}>
@@ -62,7 +63,7 @@ const AppointmentsHeader: React.FC<AppointmentHeaderProps> = ({ title, onChange 
                 titleText={t('view', 'View')}
                 type="inline"
                 size="sm"
-                direction="left"
+                direction="bottom"
                 onChange={({ selectedItem }) => onChange(selectedItem?.uuid)}
               />
             </Layer>

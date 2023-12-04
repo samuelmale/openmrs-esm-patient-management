@@ -54,7 +54,7 @@ export class FormManager {
   ) => {
     const syncItem: PatientRegistration = {
       fhirPatient: FormManager.mapPatientToFhirPatient(
-        FormManager.getPatientToCreate(isNewPatient, values, patientUuidMap, initialAddressFieldValues, []),
+        FormManager.getPatientToCreate(isNewPatient, values, patientUuidMap, []),
       ),
       _patientRegistrationData: {
         isNewPatient,
@@ -101,13 +101,7 @@ export class FormManager {
       currentLocation,
     );
 
-    const createdPatient = FormManager.getPatientToCreate(
-      isNewPatient,
-      values,
-      patientUuidMap,
-      initialAddressFieldValues,
-      patientIdentifiers,
-    );
+    const createdPatient = FormManager.getPatientToCreate(isNewPatient, values, patientUuidMap, patientIdentifiers);
 
     FormManager.getDeletedNames(values.patientUuid, patientUuidMap).forEach(async (name) => {
       await deletePersonName(name.nameUuid, name.personUuid);
@@ -192,10 +186,9 @@ export class FormManager {
             },
           ],
           form: config.registrationObs.registrationFormUuid,
-          obs: Object.keys(obss).map((conceptUuid) => ({
-            concept: conceptUuid,
-            value: obss[conceptUuid],
-          })),
+          obs: Object.entries(obss)
+            .filter(([, value]) => value !== '')
+            .map(([conceptUuid, value]) => ({ concept: conceptUuid, value })),
         };
         return saveEncounter(encounterToSave);
       }
@@ -286,7 +279,6 @@ export class FormManager {
     isNewPatient: boolean,
     values: FormValues,
     patientUuidMap: PatientUuidMapType,
-    initialAddressFieldValues: Record<string, any>,
     identifiers: Array<PatientIdentifier>,
   ): Patient {
     let birthdate;

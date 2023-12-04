@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import classNames from 'classnames';
 import { TextInput, Layer } from '@carbon/react';
 import SelectionTick from './selection-tick.component';
 import styles from '../input.scss';
@@ -94,27 +95,29 @@ const ComboInput: React.FC<ComboInputProps> = ({ entries, fieldProps, handleInpu
       </Layer>
       <div className={styles.comboInputEntries}>
         {showEntries && (
-          <div id="downshift-1-menu" className="cds--list-box__menu" role="listbox">
-            {filteredEntries.map((entry, indx) => (
-              <div
-                key={indx}
-                id="downshift-1-item-0"
-                role="option"
-                className={`cds--list-box__menu-item ${
-                  indx === highlightedEntry && 'cds--list-box__menu-item--highlighted'
-                }`}
-                tabIndex={-1}
-                aria-selected="true"
-                onClick={() => handleOptionClick(entry)}>
+          <div className="cds--combo-box cds--list-box cds--list-box--expanded">
+            <div id="downshift-1-menu" className="cds--list-box__menu" role="listbox">
+              {filteredEntries.map((entry, indx) => (
                 <div
-                  className={`cds--list-box__menu-item__option ${styles.comboInputItemOption} ${
-                    entry === value && 'cds--list-box__menu-item--active'
-                  }`}>
-                  {entry}
-                  {entry === value && <SelectionTick />}
+                  className={classNames('cds--list-box__menu-item', {
+                    'cds--list-box__menu-item--highlighted': indx === highlightedEntry,
+                  })}
+                  key={indx}
+                  id="downshift-1-item-0"
+                  role="option"
+                  tabIndex={-1}
+                  aria-selected="true"
+                  onClick={() => handleOptionClick(entry)}>
+                  <div
+                    className={classNames('cds--list-box__menu-item__option', styles.comboInputItemOption, {
+                      'cds--list-box__menu-item--active': entry === value,
+                    })}>
+                    {entry}
+                    {entry === value && <SelectionTick />}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>

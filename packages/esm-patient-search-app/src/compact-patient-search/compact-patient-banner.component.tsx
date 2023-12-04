@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { SkeletonIcon, SkeletonText, Tag } from '@carbon/react';
 import { ExtensionSlot, useConfig, interpolateString, ConfigurableLink, age } from '@openmrs/esm-framework';
@@ -80,12 +81,14 @@ const PatientSearchResults = React.forwardRef<HTMLDivElement, PatientSearchResul
 
           return (
             <ConfigurableLink
+              className={classNames(styles.patientSearchResult, {
+                [styles.deceased]: isDeceased,
+              })}
+              key={patient.id}
               onClick={(event) => selectPatientAction(event, index, patients)}
               to={`${interpolateString(config.search.patientResultUrl, {
                 patientUuid: patient.id,
-              })}`}
-              key={patient.id}
-              className={`${styles.patientSearchResult} ${isDeceased ? styles.deceased : ''}`}>
+              })}`}>
               <div className={styles.patientAvatar} role="img">
                 <ExtensionSlot
                   name="patient-photo-slot"
@@ -101,13 +104,13 @@ const PatientSearchResults = React.forwardRef<HTMLDivElement, PatientSearchResul
                   <h2 className={styles.patientName}>{`${patient.name?.[0]?.given?.join(' ')} ${
                     patient.name?.[0]?.family
                   }`}</h2>
-                  <ExtensionSlot
+                  {/* <ExtensionSlot
                     name="patient-banner-tags-slot"
                     state={{ patient, patientUuid: patient.id }}
                     className={styles.flexRow}
-                  />
+                  /> */}
                 </div>
-                <p className={styles.demographics}>
+                <div className={styles.demographics}>
                   {getGender(patient.gender)} <span className={styles.middot}>&middot;</span> {age(patient.birthDate)}
                   <span className={styles.middot}>&middot;</span>
                   {config.defaultIdentifierTypes.length ? (
@@ -123,7 +126,7 @@ const PatientSearchResults = React.forwardRef<HTMLDivElement, PatientSearchResul
                       <span className={styles.middot}>&middot;</span> {patient.identifier?.[0]?.identifier}
                     </>
                   )}
-                </p>
+                </div>
               </div>
             </ConfigurableLink>
           );

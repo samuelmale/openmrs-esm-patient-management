@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, SkeletonText } from '@carbon/react';
 import { ArrowRight } from '@carbon/react/icons';
 import { useLayoutType, useConfig, isDesktop, UserHasAccess } from '@openmrs/esm-framework';
-import IdentifierSelectionOverlay from './identifier-selection-overlay';
+import IdentifierSelectionOverlay from './identifier-selection-overlay.component';
 import { IdentifierInput } from '../../input/custom-input/identifier/identifier-input.component';
 import { PatientRegistrationContext } from '../../patient-registration-context';
 import {
@@ -59,7 +59,7 @@ export function deleteIdentifierType(identifiers: FormValues['identifiers'], ide
 export const Identifiers: React.FC = () => {
   const { identifierTypes } = useContext(ResourcesContext);
   const isLoading = !identifierTypes;
-  const { values, setFieldValue, initialFormValues } = useContext(PatientRegistrationContext);
+  const { values, setFieldValue, initialFormValues, isOffline } = useContext(PatientRegistrationContext);
   const { t } = useTranslation();
   const layout = useLayoutType();
   const [showIdentifierOverlay, setShowIdentifierOverlay] = useState(false);
@@ -101,9 +101,14 @@ export const Identifiers: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identifierTypes, setFieldValue, defaultPatientIdentifierTypes, values.identifiers, initializeIdentifier]);
 
-  if (isLoading) {
+  const closeIdentifierSelectionOverlay = useCallback(
+    () => setShowIdentifierOverlay(false),
+    [setShowIdentifierOverlay],
+  );
+
+  if (isLoading && !isOffline) {
     return (
-      <div className={styles.halfWidthInDesktopView}>
+      <div data-testid="loading-skeleton" className={styles.halfWidthInDesktopView}>
         <div className={styles.identifierLabelText}>
           <h4 className={styles.productiveHeading02Light}>{t('idFieldLabelText', 'Identifiers')}</h4>
         </div>
@@ -131,10 +136,7 @@ export const Identifiers: React.FC = () => {
           <IdentifierInput key={fieldName} fieldName={fieldName} patientIdentifier={identifier} />
         ))}
         {showIdentifierOverlay && (
-          <IdentifierSelectionOverlay
-            setFieldValue={setFieldValue}
-            closeOverlay={() => setShowIdentifierOverlay(false)}
-          />
+          <IdentifierSelectionOverlay setFieldValue={setFieldValue} closeOverlay={closeIdentifierSelectionOverlay} />
         )}
       </div>
     </div>
